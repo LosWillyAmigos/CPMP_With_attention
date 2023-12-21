@@ -181,7 +181,7 @@ def load_cpmp_model(name: str) -> Model:
                       'ConcatenationLayer': ConcatenationLayer,
                       'Reduction': Reduction}
     
-    model = load_model(name, custom_objects= custom_objects)
+    model = load_model(name, custom_objects= custom_objects) 
 
     return model
 
@@ -190,9 +190,9 @@ if __name__ == '__main__':
     cpmp_ml.greedy_model = greedy_model
     cpmp_ml.get_ann_state = get_ann_state
     
-    model = load_cpmp_model('models/model_cpmp_5x5.h5')
+    model = load_cpmp_model('models/model_cpmp_5x5.keras')
 
-    reinforcement_training(model= model, S= 5, H= 5, MPC= 15, sample_size= 100000, iter= 2, batch_size= 1000, max_steps= 10) 
+    reinforcement_training(model= model, S= 5, H= 5, MPC= 15, sample_size= 100000, iter= 2, batch_size= 1000, max_steps= 5) 
 
     model.save('models/model_cpmp_5x5.keras')
  
