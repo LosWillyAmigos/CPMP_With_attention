@@ -4,18 +4,27 @@ import tensorflow as tf
 from keras import backend as K
 
 class N_Dense_Layer(Layer):
-    def __init__(self, dim = 5, activation: str = 'sigmoid', dim_output=1) -> None:
+    def __init__(self, dim = 5, activation: str = 'sigmoid', dim_output=5) -> None:
         super(N_Dense_Layer,self).__init__()
-        self.__d1 = Dense(dim, activation=activation)
-        self.__d2 = Dense(dim * 2, activation=activation)
-        self.__d3 = Dense(dim_output, activation=activation)
+        self.d1 = Dense(dim, activation=activation)
+        self.d2 = Dense(dim * 4, activation=activation)
+        self.dp1 = Dropout(0.5)
+        self.d3 = Dense(dim * 6, activation=activation)
+        self.dp2 = Dropout(0.5)
+        self.d4 = Dense(dim * 4, activation=activation)
+        self.d5 = Dense(dim_output, activation=activation)
 
     def call(self, inputs: tf.TensorArray):
-        o1 = self.__d1(inputs)
-        o2 = self.__d2(o1)
-        o3 = self.__d3(o2)
+        o1 = self.d1(inputs)
+        o2 = self.d2(o1)
+        d1 = self.dp1(o2)
+        o3 = self.d3(d1)
+        o4 = self.d4(o3)
+        d2 = self.dp2(o4)
+        o5 = self.d5(d2)
 
-        return o3
+        return o5
+
 
 class FeedForward(Layer):
     def __init__(self, dim: int = 5, activation: str = 'sigmoid', dim_output=5) -> None:
@@ -27,25 +36,40 @@ class FeedForward(Layer):
         result = self.time(inputs)
         return result
     
+class Stack_Attention(Layer):
+    def __init__(self, heads: int = 5, dim: int = 5,epsilon=1e-6, act = 'sigmoid') -> None:
+        super(Stack_Attention,self).__init__()
+
+        self.multihead = MultiHeadAttention(num_heads=heads,key_dim=dim)
+        self.layer_n = LayerNormalization(epsilon=epsilon)
+        self.feed_1 = Dense(dim, activation=act)
+        self.feed_0 = Dense(dim, activation='linear')
+        self.add = Add()
+    
+    def call(self, inputs_o: tf.TensorArray, inputs_att: tf.TensorArray, training=True):
+        att = self.multihead(inputs_att,inputs_att, training=training)
+        ad = self.add([inputs_o,att])
+        norm = self.layer_n(ad)
+        output = self.feed_0(norm)
+        output_ = self.feed_1(output)
+        return output_
+    
 class Model_CPMP(Layer):
     def __init__(self, heads: int = 5, H: int = 5,
-                activation:str = 'sigmoid', S:int = 5) -> None:
+                activation:str = 'sigmoid') -> None:
         super(Model_CPMP, self).__init__()
 
         self.att_0 = Stack_Attention(heads=5, dim=H+1, act=activation)
         self.att_1 = Stack_Attention(heads=5, dim=H+1, act=activation)
-        self.flatten = Flatten()
-        self.dense_0 = Dense(S*2,activation=activation)
-        self.dense_1 = Dense(S,activation=activation)
+        self.feed_0 = FeedForward(dim=H+1,activation='sigmoid',dim_output=1)
 
     @tf.autograph.experimental.do_not_convert
     def call(self, input_0: tf.TensorArray, training=True) -> None:
         at1 = self.att_0(input_0,input_0,training)
-        at2 = self.att_1(input_0,at1,training)
-        flt = self.flatten(at2)
-        dn0 = self.dense_0(flt)
-        dn1 = self.dense_1(dn0)
-        return dn1
+        at2 = self.att_1(at1,at1,training)
+
+        dn0 = self.feed_0(at2)
+        return dn0
     
 class LayerExpandOutput(Layer):
     def __init__(self, **kwargs) -> None:
@@ -91,19 +115,14 @@ class Reduction(Layer):
     def __init__(self) -> None:
         super(Reduction, self).__init__(trainable=False)
 
-    def call(self, arr: tf.TensorArray, S) -> tf.TensorArray:
-        aux = [True for n in range(S * S)]
-        k = 0
+    def call(self, arr: tf.Tensor) -> tf.Tensor:
+        S = tf.shape(arr)[1]
+        S = tf.cast(tf.round(tf.sqrt(tf.cast(S, dtype=tf.float32))), dtype=tf.int32)
 
-        for i in range(S):
-            for j in range(S):
-                if i == j:
-                    aux[k] = False
-                k += 1
-
-        mask = tf.constant(aux)
-        output = tf.boolean_mask(arr, mask, axis= 1)
-        output = tf.reshape(output, shape= (tf.shape(arr)[0], S * (S - 1)))
+        aux = tf.math.logical_not(tf.eye(S, dtype=tf.bool))
+        mask = tf.reshape(aux, [-1])
+        
+        output = tf.boolean_mask(arr, mask, axis=1)
 
         return output
 
@@ -114,21 +133,3 @@ class UnificationLayer(Layer):
     def call(self, inputs: tf.TensorArray):
         reshape = tf.reshape(inputs,shape=(tf.shape(inputs)[0],tf.shape(inputs)[1] * tf.shape(inputs)[2]))
         return reshape
-    
-class Stack_Attention(Layer):
-    def __init__(self, heads: int = 5, dim: int = 5,epsilon=1e-6, act = 'sigmoid') -> None:
-        super(Stack_Attention,self).__init__()
-
-        self.multihead = MultiHeadAttention(num_heads=heads,key_dim=dim)
-        self.layer_n = LayerNormalization(epsilon=epsilon)
-        self.feed_1 = Dense(dim, activation=act)
-        self.feed_0 = Dense(dim, activation='linear')
-        self.add = Add()
-    
-    def call(self, inputs_o: tf.TensorArray, inputs_att: tf.TensorArray, training=True):
-        att = self.multihead(inputs_att,inputs_att, training=training)
-        ad = self.add([inputs_o,att])
-        norm = self.layer_n(ad)
-        output = self.feed_0(norm)
-        output_ = self.feed_1(output)
-        return output_
