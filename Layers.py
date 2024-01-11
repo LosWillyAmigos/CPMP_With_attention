@@ -29,12 +29,12 @@ class Model_CPMP(Layer):
         dense_3 = self.__dense_3(normalization)
         dense_4 = self.__dense_4(dense_3)
 
-        """for _ in range(self.__num_layer_attention_add):
+        for _ in range(self.__num_layer_attention_add):
             reshape = self.__multihead_atention(dense_4, input)
             add = self.__add([input, reshape])
             normalization = self.__normalization_layer(add)
             dense_3 = self.__dense_3(normalization)
-            dense_4 = self.__dense_4(dense_3)"""
+            dense_4 = self.__dense_4(dense_3)
 
         flatten = self.__flatten(dense_4)
         dense_1 = self.__dense_1(flatten)
