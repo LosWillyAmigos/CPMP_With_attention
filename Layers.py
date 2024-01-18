@@ -43,13 +43,13 @@ class StackWiseProcessing(Layer):
         super(StackWiseProcessing, self).__init__()
 
         self.__dense_1__ = Dense(units * 5, activation= activation)
-        self.__dense_2__ = Dense(units * 6, activation= activation)
+        self.__dense_2__ = Dense(units * 4, activation= activation)
         self.__dense_3__ = Dense(units * 4, activation= activation)
         self.__dense_4__ = Dense(units * 3, activation= activation)
         self.__dense_5__ = Dense(1, activation= activation)
-        self.__dropout_1__ = Dropout(0.5)
-        self.__dropout_2__ = Dropout(0.5)
-        self.__dropout_3__ = Dropout(0.5)
+        self.__dropout_1__ = Dropout(0.1)
+        self.__dropout_2__ = Dropout(0.2)
+        self.__dropout_3__ = Dropout(0.2)
 
     def call(self, arr: tf.TensorArray) -> tf.TensorArray:
         dense_1 = self.__dense_1__(arr)
@@ -78,12 +78,12 @@ class FeedForward(Layer):
     def __init__(self, units: int, activation: str | None):
         super(FeedForward, self).__init__()
 
-        self.__dense_1__ = Dense(units * 7, activation= activation)
-        self.__dense_2__ = Dense(units * 7, activation= activation)
+        self.__dense_1__ = Dense(units * 4, activation= activation)
+        self.__dense_2__ = Dense(units * 6, activation= activation)
         self.__dense_3__ = Dense(units * 5, activation= activation)
         self.__dense_4__ = Dense(units, activation= activation)
-        self.__dropout_1__ = Dropout(0.5)
-        self.__dropout_2__ = Dropout(0.5)
+        self.__dropout_1__ = Dropout(0.2)
+        self.__dropout_2__ = Dropout(0.2)
 
     def call(self, arr: tf.Tensor) -> tf.Tensor:
         dense_1 = self.__dense_1__(arr)
