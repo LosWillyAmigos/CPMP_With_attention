@@ -79,13 +79,11 @@ class DenseLayer(Layer):
     """
     def __init__(self, dim: int, activation: str = 'sigmoid') -> None:
         super(DenseLayer,self).__init__()
-        self.dense_1 = Dense(dim, activation)
-        self.dense_2 = Dense(dim, activation)
+        self.time = TimeDistributed(Dense(dim, activation))
 
     def call(self, inputs: tf.TensorArray):
-        o1 = self.dense_1(inputs)
-        o2 = self.dense_2(o1)
-        return o2
+        o1 = self.time(inputs)
+        return o1
     
 
 class Stack_Attention(Layer):
@@ -165,7 +163,7 @@ class Model_CPMP(Layer):
             raise ValueError("heads or H has no value.")
         self.att_0 = Stack_Attention(heads=heads, dim=H+1, act=activation, epsilon=epsilon)
         self.att_1 = Stack_Attention(heads=heads, dim=H+1, act=activation,epsilon=epsilon)
-        self.feed_0 = FeedForward(dim_input=H+1,activation='sigmoid',dim_output=1)
+        self.feed_0 = TimeDistributed(FeedForward(dim_input=H+1,activation='sigmoid',dim_output=1))
 
     @tf.autograph.experimental.do_not_convert
     def call(self, input_0: tf.TensorArray, training=True) -> None:

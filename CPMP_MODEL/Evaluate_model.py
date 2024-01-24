@@ -76,14 +76,14 @@ def greedy_dinamic_model(layout, model, max_steps=20):
         return steps
     return -1
 
-def generate_random_state(sample_size):
+def generate_random_state(sample_size,S,H,N):
   l = []
   for i in range(sample_size):
-    l.append(generate_random_layout(S=5,H=5,N=15))
+    l.append(generate_random_layout(S=S,H=H,N=N))
 
   return l, deepcopy(l)
 
-def evaluate(sample_size=10000, model = None, Verbose=True, Greedy=True):
+def evaluate(sample_size=10000, model = None, Verbose=True, Greedy=True, S=5, H=5, N=15):
     
     if Greedy:
        win_greedy = 0
@@ -92,7 +92,7 @@ def evaluate(sample_size=10000, model = None, Verbose=True, Greedy=True):
     win_model = 0
     steps_model = 0
     
-    ls, la = generate_random_state(sample_size)
+    ls, la = generate_random_state(sample_size,S,H,N)
 
     for i in range(sample_size):
         if Verbose: print(f'iter: {i+1}')
