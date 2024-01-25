@@ -1,7 +1,25 @@
 from keras.layers import Layer
-from keras.layers import Concatenate, Flatten, Dense, Dropout, MultiHeadAttention, LayerNormalization, Add, TimeDistributed
+from keras.layers import Concatenate, Flatten, Dense, Dropout, Multiply
+from keras.layers import MultiHeadAttention, LayerNormalization, Add, TimeDistributed
 import tensorflow as tf
 from math import sqrt
+
+class CPMP_Masking(Layer):
+    def __init__(self, H: int) -> None:
+        super(CPMP_Masking, self).__init__()
+
+        self.__dense_1__ = Dense(H, activation= 'sigmoid')
+        self.__dense_2__ = Dense(H * 3, activation= 'sigmoid')
+        self.__dense_3__ = Dense(H * 2, activation= 'sigmoid')
+        self.__dense_4__ = Dense(H, activation= 'sigmoid')
+    
+    def call(self, arr: tf.TensorArray) -> tf.TensorArray:
+        dense_1 = self.__dense_1__(arr)
+        dense_2 = self.__dense_2__(dense_1)
+        dense_3 = self.__dense_3__(dense_2)
+        dense_4 = self.__dense_4__(dense_3)
+
+        return dense_4
 
 class Reduction(Layer):
     def __init__(self) -> None:
@@ -93,7 +111,6 @@ class FeedForward(Layer):
         dropout_2 = self.__dropout_2__(dense_2)
         
         dense_3 = self.__dense_3__(dropout_2)
-        
         dense_4 = self.__dense_4__(dense_3)
 
         return dense_4
@@ -124,12 +141,17 @@ class Model_CPMP(tf.keras.layers.Layer):
 
         self.__transformer_1__ = Transformer(num_heads= num_heads, key_dim= key_dim)
         self.__transformer_2__ = Transformer(num_heads= num_heads, key_dim= key_dim)
+        self.__masking__ = CPMP_Masking(H= key_dim)
+        self.__multiply__ = Multiply()
         self.__stackwise__ = StackWiseProcessing(units= key_dim, activation= activation)
         self.__flatten__ = Flatten()
 
     def call(self, state: tf.TensorArray) -> tf.TensorArray:
+        masking = self.__masking__(state)
+        multiply = self.__multiply__([state, masking])
+
         transformer_1 = self.__transformer_1__(state, state, state)
-        transformer_2 = self.__transformer_2__(state, transformer_1, transformer_1)
+        transformer_2 = self.__transformer_2__(multiply, transformer_1, transformer_1)
 
         stackwise = self.__stackwise__(transformer_2)
         flatten = self.__flatten__(stackwise)
