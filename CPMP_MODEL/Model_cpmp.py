@@ -1,24 +1,20 @@
-import keras
-from keras.layers import Input, Flatten, Dense, Dropout, TimeDistributed
-from keras.layers import TimeDistributed
-from keras.models import Model
-from CPMP_MODEL.Layers import OutputMultiplication, Model_CPMP, Reduction, DenseLayer
-from CPMP_MODEL.Layers import ConcatenationLayer, LayerExpandOutput, FeedForward, Stack_Attention
 import tensorflow as tf
+from keras.layers import Input, Flatten, TimeDistributed, Multiply
+from keras.models import Model
+from CPMP_MODEL.Layers import Model_CPMP, Reduction, DenseLayer
+from CPMP_MODEL.Layers import ConcatenationLayer, LayerExpandOutput, FeedForward, Stack_Attention
 
 def create_model(heads: int = 5, H: int = 5,
                 optimizer: str | None = 'Adam', epsilon=1e-6
                 ) -> Model:
     input_layer = Input(shape=(None,H+1))
-    mask = DenseLayer(dim=H+1)(input_layer)
-    layer_attention_so = Model_CPMP(H=H,heads=heads,activation='sigmoid',epsilon=epsilon)(mask)
+    layer_attention_so = Model_CPMP(H=H,heads=heads,activation='sigmoid',epsilon=epsilon)(input_layer)
     expand = LayerExpandOutput()(layer_attention_so)
-    concatenation = ConcatenationLayer()(mask)
-    layer_attention_sd = Model_CPMP(H=H+1,heads=heads,activation='sigmoid')
-    distributed = TimeDistributed(layer_attention_sd)(concatenation)
+    concatenation = ConcatenationLayer()(input_layer)
+    distributed = TimeDistributed(Model_CPMP(H=H+1,heads=heads,activation='sigmoid'))(concatenation)
     unificate = Flatten()(distributed)
-    m = OutputMultiplication()(unificate,expand)
-    red = Reduction()(m)
+    mult = Multiply()([unificate,expand])
+    red = Reduction()(mult)
 
     model = Model(inputs=input_layer,outputs=red)
     model.compile(optimizer=optimizer, loss= 'binary_crossentropy', metrics= ['mae', 'mse'])
@@ -27,7 +23,6 @@ def create_model(heads: int = 5, H: int = 5,
     
 def load_model(name: str) -> Model:
         c_o={'Model_CPMP': Model_CPMP, 
-             'OutputMultiplication': OutputMultiplication,
              'LayerExpandOutput': LayerExpandOutput,
              'ConcatenationLayer': ConcatenationLayer,
              'Reduction': Reduction,
