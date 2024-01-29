@@ -3,7 +3,7 @@ import numpy as np
 import uuid
 
 
-def save_data(States : np.array, Labels : np.array, name_file):
+def save_data(States : np.array, Labels : np.array, name_file : str):
     """
     Guarda un arreglo de matrices y un arreglo de arreglos en formato JSON.
 
@@ -14,12 +14,12 @@ def save_data(States : np.array, Labels : np.array, name_file):
     datos = []
 
     for matrices, labels in zip(States, Labels):
-        elemento = {
+        element = {
             "_id": str(uuid.uuid4()),  # Generar un nuevo ID único
             "State": matrices.tolist(),
             "Labels": labels.tolist()
         }
-        datos.append(elemento)
+        datos.append(element)
 
     with open(name_file + '.json', 'w') as archivo_json:
         json.dump(datos, archivo_json, indent=2)
