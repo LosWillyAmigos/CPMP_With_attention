@@ -147,11 +147,11 @@ class Model_CPMP(tf.keras.layers.Layer):
         self.__flatten__ = Flatten()
 
     def call(self, state: tf.TensorArray) -> tf.TensorArray:
-        #masking = self.__masking__(state)
-        #multiply = self.__multiply__([state, masking])
+        masking = self.__masking__(state)
+        multiply = self.__multiply__([state, masking])
 
         transformer_1 = self.__transformer_1__(state, state, state)
-        transformer_2 = self.__transformer_2__(state, transformer_1, transformer_1)
+        transformer_2 = self.__transformer_2__(state, multiply, transformer_1)
 
         stackwise = self.__stackwise__(transformer_2)
         flatten = self.__flatten__(stackwise)
