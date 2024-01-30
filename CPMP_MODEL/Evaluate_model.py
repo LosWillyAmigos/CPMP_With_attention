@@ -2,7 +2,7 @@ import numpy as np
 import importlib
 from copy import deepcopy
 
-import CPMP.cpmp_ml
+from CPMP import cpmp_ml
 from cpmp_ml import generate_random_layout, greedy, get_ann_state, generate_data
 
 
