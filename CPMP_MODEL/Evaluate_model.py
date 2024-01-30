@@ -2,13 +2,9 @@ import numpy as np
 import importlib
 from copy import deepcopy
 
-import os
-current_directory = os.getcwd()
-os.chdir(current_directory+"/CPMP-ML")
-
-import cpmp_ml
+import CPMP.cpmp_ml
 from cpmp_ml import generate_random_layout, greedy, get_ann_state, generate_data
-os.chdir(current_directory)
+
 
 def get_ann_state(layout: cpmp_ml.Layout) -> np.ndarray:
   S=len(layout.stacks) # Cantidad de stacks
