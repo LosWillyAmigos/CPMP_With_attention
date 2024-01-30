@@ -60,33 +60,35 @@ def clear_terminal():
 
 def detect_cycles(states, state):
     size = len(states)
+    #stack_size = len(state.stacks)
 
     for i in range(size):
         if states[i].stacks == state.stacks: return True
-
-    return False 
+    
+    return False
 
 def resolve_cpmp_problem(model, stack, height, conteiners):
     states = []
     state = generate_random_layout(S= stack, H= height, N= conteiners)
 
     while(True):
-        states.append(state)
+        states.append(deepcopy(state))
         if state.unsorted_stacks == 0: break
-
         nn_state = get_ann_state_v2(state)
 
         act = model.predict(np.stack([nn_state]), verbose= False)
         k = np.argmax(act)
         move = get_move(k, S= stack, H= stack)
 
+        print(state.stacks)
         container = state.move(move)
+        print(state.stacks, '\n', container)
 
         if container is None:
-            states.append(state)
+            states.append(deepcopy(state))
             return states, 1, None
         elif detect_cycles(states, state):
-            states.append(state)
+            states.append(deepcopy(state))
             return states, 2, move
 
     return states, 0, None
@@ -123,8 +125,8 @@ def visualize(model, stack, height, conteiners):
 
     show_matrixs(states, stack, height)
 
-    if err == 1: print(ERR_MSG_CYCLE)
-    elif err == 2: print(f'{ERR_MSG_MOVE}  move: {move}')
+    if err == 2: print(ERR_MSG_CYCLE)
+    elif err == 1: print(f'{ERR_MSG_MOVE}  move: {move}')
     else: print(SUCCESS_MSG)
 
 def repeat():
