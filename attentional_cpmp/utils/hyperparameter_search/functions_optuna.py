@@ -50,7 +50,9 @@ def objective(trial: Trial,
               batch_size: int,
               validation_split: float,
               use_saver_callbacks: bool,
-              dir_callbacks: str | None = None) -> float:
+              dir_callbacks: str | None = None,
+              dropout: float = 0,
+              rate: float = 0) -> float:
 
         X_train_copy = np.copy(X_train)
         Y_train_copy = np.copy(Y_train)
@@ -61,8 +63,8 @@ def objective(trial: Trial,
 
         value_dim = trial.suggest_categorical("value_dim", [None, *range(1, max_value_dim, step)])
 
-        dropout = trial.suggest_float('dropout', 0.0, 0.9)
-        rate = trial.suggest_float('rate', 0.0, 0.9)
+        #dropout = trial.suggest_float('dropout', 0.0, 0.9)
+        #rate = trial.suggest_float('rate', 0.0, 0.9)
 
         activation_hide = trial.suggest_categorical('activation_hide', ['linear', 'sigmoid', 'relu', 'softplus', 'gelu', 'elu', 'selu', 'exponential'])
         activation_feed = trial.suggest_categorical('activation_feed', ['linear', 'sigmoid', 'relu', 'softplus', 'gelu', 'elu', 'selu', 'exponential'])
@@ -111,20 +113,6 @@ def objective(trial: Trial,
             
             callbacks.append(pruning_callback)
             callbacks.append(early_stopping_callback)
-            
-            if use_saver_callbacks:
-                os.makedirs(dir_callbacks, exist_ok=True)
-                best_hyp_saver = BestHyperparameterSaver(trial, 
-                                                        monitor=monitor, 
-                                                        filename=dir_callbacks + "/best_hyp.json",
-                                                        metrics=metrics)
-                
-                all_saver = HyperparameterSaver(trial,
-                                                monitor=monitor,
-                                                filename=dir_callbacks + "/all_hyp.json",
-                                                metrics=metrics)
-                callbacks.append(best_hyp_saver)
-                callbacks.append(all_saver)
       
             if np.any(X_train_copy) == None or np.any(Y_train_copy) == None:
                 raise ValueError("Something of the data has value None.")
