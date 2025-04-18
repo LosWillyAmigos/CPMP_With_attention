@@ -48,11 +48,7 @@ def objective(trial: Trial,
               Y_train: Any | np.ndarray,
               epochs: int,
               batch_size: int,
-              validation_split: float,
-              use_saver_callbacks: bool,
-              dir_callbacks: str | None = None,
-              dropout: float = 0,
-              rate: float = 0) -> float:
+              validation_split: float) -> float:
 
         X_train_copy = np.copy(X_train)
         Y_train_copy = np.copy(Y_train)
@@ -63,8 +59,8 @@ def objective(trial: Trial,
 
         value_dim = trial.suggest_categorical("value_dim", [None, *range(1, max_value_dim, step)])
 
-        #dropout = trial.suggest_float('dropout', 0.0, 0.9)
-        #rate = trial.suggest_float('rate', 0.0, 0.9)
+        dropout = trial.suggest_float('dropout', 0.0, 0.9)
+        rate = trial.suggest_float('rate', 0.0, 0.9)
 
         activation_hide = trial.suggest_categorical('activation_hide', ['linear', 'sigmoid', 'relu', 'softplus', 'gelu', 'elu', 'selu', 'exponential'])
         activation_feed = trial.suggest_categorical('activation_feed', ['linear', 'sigmoid', 'relu', 'softplus', 'gelu', 'elu', 'selu', 'exponential'])
@@ -136,9 +132,6 @@ def objective(trial: Trial,
 
             # Manejar errores
             print(f"Error en el ensayo {trial.number}: {e}")
-            
-            # Registrar el ensayo como fallido
-            trial.set_user_attr("failed", True)
 
             # Limpieza adicional
             clear_session()
