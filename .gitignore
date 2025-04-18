@@ -15,3 +15,5 @@ trials/
 testing_training_models/
 files/
 scripts_testing/
+test/
+cpmp_env/
