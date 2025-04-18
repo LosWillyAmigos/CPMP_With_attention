@@ -35,8 +35,8 @@ def create_model(H: int,
                  n_dropout_feed: int = 1,
                  epsilon:float=1e-6,
                  num_stacks: int = 1,
-                 optimizer: str | None = 'Adam',
-                 loss: str = 'binary_crossentropy',
+                 optimizer: Any | None = 'Adam',
+                 loss: Any = 'binary_crossentropy',
                  metrics: list[Any] = ['mae', 'mse']) -> Model:
     input_layer = Input(shape=(None,H+1))
     layer_attention_so = ModelCPMP(dim=H,
