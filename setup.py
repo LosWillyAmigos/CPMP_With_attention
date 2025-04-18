@@ -32,7 +32,7 @@ setup(
         "pandas==2.2.3",
         "openpyxl==3.1.5"
     ],
-    python_requires=">=3.10,<3.12",
+    python_requires=">=3.10,<3.13",
     packages=find_packages(
         include=("attentional_cpmp", "attentional_cpmp.*"),
         exclude=["models", "models.*"]
