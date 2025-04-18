@@ -14,20 +14,14 @@
 module load python/3.11.5            # Ajusta al módulo de Python disponible
 
 # Activar el entorno virtual existente
-source ./../../venv/bin/activate
+source env/bin/activate
 
 # Ejecutar el script con argumento
-python ./../python/create_and_optimize_study_with_one_objective.py \
-    --study_name hyperparameter_search_3 \
-    --storage_name ./../storage/hyperparameter_search_3.json \
-    --path_data ./../../data/CPMP_With_Attention.Sx7_v4.json \
-    --dim_data 5 \
+python ./../python/training_models.py \
+    --model_config ./../../data/best_models.json \
+    --data_dimension 5 \
     --H 7 \
-    --path_config_model ./../../data/config_model.json \
-    --path_config_callbacks ./../../data/config_callbacks.json \
-    --path_config_max_trials ./../../data/max_trials_setting.json \
-    --path_good_params ./../../data/initial_hyperparameters.json \
-    --n_trials 1000 \
-    --n_jobs 1 \
+    --data ./../../data/CPMP_With_Attention.Sx7_v4.json \
+    --train_config ./../../data/training_config.json
 
 deactivate
