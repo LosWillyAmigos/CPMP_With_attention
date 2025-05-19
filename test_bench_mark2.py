@@ -1022,5 +1022,4 @@ def main_menu():
         exit()
 
 if __name__ == '__main__':
-    main_menu()
-    #print(data_json('attentionmodel'))
+    saved_model_test()

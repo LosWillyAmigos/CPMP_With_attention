@@ -32,16 +32,20 @@ model_Sx7 = create_model(
     num_heads= 5,
     num_stacks= 7, 
     H= 7,
-    key_dim= 8,
-    activation_hide= 'linear',
-    list_neurons_feed= [32, 24, 16],
-    list_neurons_hide= [32, 24, 16],
+    key_dim= 10,
+    activation_hide= 'sigmoid',
+    activation_feed= 'sigmoid',
+    n_dropout_hide= 0,
+    n_dropout_feed= 0,
+    dropout= 0,
+    list_neurons_feed= [42, 70, 60, 20],
+    list_neurons_hide= [20, 20]
 )
 
 for _ in range(2):
     for stack in data_Sx7:
         model_Sx7.fit(np.array(data_Sx7[stack]["States"]), np.array(data_Sx7[stack]["Labels"]), batch_size= 32, epochs= 10)
 
-model_Sx7.save("./models/attentional/Sx7/model_Sx7.h5")
+model_Sx7.save("./models/attentional/Sx7/model_Sx7.keras")
 
 validate_model(model_Sx7, GreedyV2(), AttentionModel(), 10, 7, 50, 1000, max_steps= 100)
