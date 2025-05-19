@@ -45,16 +45,16 @@ def load_data_mongo(collection: pymongo.collection.Collection, verbose: bool = T
         data = {}
         collection_size = collection.count_documents({})
         processed = 0
-        
-        # Usar proyección para traer solo los campos necesarios
-        cursor = collection.find({}, {'States': 1, 'Labels': 1, '_id': 0})
-        
-        # Procesar en lotes de 1000 documentos
         batch_size = 1000
         
-        while True:
-            # Obtener el siguiente lote
-            batch = list(cursor.limit(batch_size))
+        # Procesar en lotes
+        while processed < collection_size:
+            # Obtener el siguiente lote con limit y skip
+            batch = list(collection.find(
+                {}, 
+                {'States': 1, 'Labels': 1, '_id': 0}
+            ).skip(processed).limit(batch_size))
+            
             if not batch:
                 break
                 
@@ -64,10 +64,11 @@ def load_data_mongo(collection: pymongo.collection.Collection, verbose: bool = T
                     data[states_len] = {'States': [], 'Labels': []}
                 data[states_len]['States'].append(states['States'])
                 data[states_len]['Labels'].append(states['Labels'])
+                if verbose:
+                    load_simbol(processed, collection_size, text='Datos cargados: ')
             
             processed += len(batch)
-            if verbose:
-                load_simbol(processed, collection_size, text='Datos cargados: ')
+            
 
         return data
     except pymongo.errors.ConnectionFailure as conection_Error:
