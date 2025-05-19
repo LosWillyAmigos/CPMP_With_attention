@@ -64,10 +64,12 @@ def load_data_mongo(collection: pymongo.collection.Collection, verbose: bool = T
                     data[states_len] = {'States': [], 'Labels': []}
                 data[states_len]['States'].append(states['States'])
                 data[states_len]['Labels'].append(states['Labels'])
+
+                processed += 1
                 if verbose:
                     load_simbol(processed, collection_size, text='Datos cargados: ')
             
-            processed += len(batch)
+            
             
 
         return data
