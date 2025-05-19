@@ -42,19 +42,34 @@ def load_data_mongo(collection: pymongo.collection.Collection, verbose: bool = T
                     to load the data.
     """
     try:
-        data = dict()
+        data = {}
         collection_size = collection.count_documents({})
-        cont = 0
-
-        for states in collection.find():
-            if str(len(states['States'])) not in data:
-                data.update({str(len(states['States'])): {'States': [states['States']], 'Labels': [states['Labels']]}})
-            else:
-                data[str(len(states['States']))]['States'].append(states['States'])
-                data[str(len(states['States']))]['Labels'].append(states['Labels'])
-            cont += 1
-
-            if verbose: load_simbol(cont, collection_size, text= 'Datos cargados: ')
+        
+        # Usar proyección para traer solo los campos necesarios
+        cursor = collection.find({}, {'States': 1, 'Labels': 1, '_id': 0})
+        
+        # Procesar en lotes de 1000 documentos
+        batch_size = 1000
+        processed = 0
+        
+        while True:
+            batch = list(cursor.limit(batch_size))
+            if not batch:
+                break
+                
+            for states in batch:
+                states_len = str(len(states['States']))
+                if states_len not in data:
+                    data[states_len] = {'States': [], 'Labels': []}
+                data[states_len]['States'].append(states['States'])
+                data[states_len]['Labels'].append(states['Labels'])
+            
+            processed += len(batch)
+            if verbose:
+                load_simbol(processed, collection_size, text='Datos cargados: ')
+            
+            # Avanzar el cursor
+            cursor.skip(processed)
 
         return data
     except pymongo.errors.ConnectionFailure as conection_Error:
